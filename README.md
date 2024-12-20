@@ -1,95 +1,158 @@
-Running vid2vidzero
+# Vid2Vid-Zero Setup and Execution
 
-
-conda create -n vid2vid_zero python=3.8 -y 
+### Environment Setup
+```bash
+# Create and activate the conda environment
+conda create -n vid2vid_zero python=3.8 -y
 conda activate vid2vid_zero
+```
 
-cd  /home/youshan/Master_projects/Bharat Kathuria/VideoEdit/vid2vid-zero-main
+### Install Dependencies
+```bash
+# Navigate to the project directory
+cd /home/youshan/Master_projects/Bharat\ Kathuria/VideoEdit/vid2vid-zero-main
 
+# Install dependencies from requirements.txt
+pip install -r requirements.txt
 
-Install the requirements.txt
-Pip install -r requirements.txt
-
-On top of this run 
-
+# Additional dependencies
 pip install opencv-python xformers
+```
 
+### Modify Diffusers File
+Navigate to the following location:
+```bash
 /home/youshan/anaconda3/envs/vid2vid_zero/lib/python3.8/site-packages/diffusers
-At this location, remove import of cached_download from dynamic_modules_utils.py file
+```
+Edit the file `dynamic_modules_utils.py` and **remove** the import of `cached_download`.
 
+### Download Checkpoints
+Run the `get_model.ipynb` notebook to download the required checkpoints. You can use pre-existing checkpoints or create your own.
 
-
-Run get_model.ipynb cell to download the checkpoint
-There are various checkpoints available or can create own
-
+### Generate Output
+```bash
+# Run the script to generate output
 accelerate launch test_vid2vid_zero.py --config configs/car-moving.yaml
-To generate output
+```
 
-For this, setup config at configs folder, setup the yaml file
-Change parameters, give input video, prompt describing the video and expected output from prompt
+#### Configuration Setup
+1. Navigate to the `configs` folder.
+2. Set up the YAML file (e.g., `car-moving.yaml`).
+3. Update the following parameters:
+   - Input video path
+   - Prompt describing the video
+   - Expected output description
 
+---
 
+# Tune-A-Video Setup and Execution
 
-========================================================================
-
-
-
-Running TuneAVideo
-
-
-conda create -n TuneAVideo python=3.8 -y 
+### Environment Setup
+```bash
+# Create and activate the conda environment
+conda create -n TuneAVideo python=3.8 -y
 conda activate TuneAVideo
-Pip install -r requirements.txt
-Pip install xformers
+```
+
+### Install Dependencies
+```bash
+# Install dependencies from requirements.txt
+pip install -r requirements.txt
+
+# Additional dependencies
+pip install xformers
+```
+
+### Modify Diffusers File
+Navigate to the following location:
+```bash
 /home/youshan/anaconda3/envs/TuneAVideo/lib/python3.8/site-packages/diffusers
-At this location, remove import of cached_download from dynamic_modules_utils.py file
+```
+Edit the file `dynamic_modules_utils.py` and **remove** the import of `cached_download`.
 
-
-
+### Train the Model
+```bash
+# Launch the training script
 accelerate launch train_tuneavideo.py --config="configs/man-skiing.yaml"
-For this, setup config at configs folder, setup the yaml file
-Change parameters, give input video, prompt describing the video and expected output from prompt
+```
 
+#### Configuration Setup
+1. Navigate to the `configs` folder.
+2. Set up the YAML file (e.g., `man-skiing.yaml`).
+3. Update the following parameters:
+   - Input video path
+   - Prompt describing the video
+   - Expected output description
 
+---
 
-========================================================================
+# FrameMorph Setup and Execution
 
-Setting up framemorph
-
-Use the same env as vid2vidzero
-
-
+### Environment Setup
+Use the same environment as Vid2Vid-Zero:
+```bash
 conda activate vid2vid_zero
-Pip install ffmpeg-python realesrgan
+pip install ffmpeg-python realesrgan
+```
 
+### Data Preparation
+1. Place your videos under the folder `data/videos`.
+2. Add video descriptions to `data/annotations.txt` using the following format:
+   ```
+   video_name | description of video
+   ```
 
-Under the folder -> data/videos place your videos
-Under the file data/annotations.txt, give video name| description of video
-
-
-
+### Download Pretrained Model
+```bash
+# Download Real-ESRGAN pretrained model
 !wget https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P experiments/pretrained_models
+```
 
-No module named 'torchvision.transforms.functional_tensor'
+### Modify Basicsr File
+Navigate to the following location:
+```bash
 /home/youshan/anaconda3/envs/vid2vid_zero/lib/python3.8/site-packages/basicsr/data
+```
+Edit the file to change the import:
+```python
+# Replace this line
+from torchvision.transforms.functional_tensor import rgb_to_grayscale
 
-Change from torchvision.transforms.functional_tensor import rgb_to_grayscale
-To
+# With this line
 from torchvision.transforms.functional import rgb_to_grayscale
+```
 
+### Train and Inference
+```bash
+# Train the model
+python src/train.py
 
-Python src/train.py
-Python src/inference.py 	(generates videos -under results)
-Python src/upscale.py         (upscales them)
+# Generate videos
+python src/inference.py
 
-====
-Generating metrics
+# Upscale videos
+python src/upscale.py
+```
+- Generated videos are saved under the `results` folder.
 
-/home/youshan/Master_projects/Bharat Kathuria/VideoEdit/Metrics/Metrics.py
+---
 
-def save_metrics_to_csv(metrics, csv_filename="Vid2VidZeroMetrics.csv"):
+# Generating Metrics
 
-Set the file name over here, and 
+### Metrics Evaluation
+Navigate to:
+```bash
+/home/youshan/Master_projects/Bharat\ Kathuria/VideoEdit/Metrics/Metrics.py
+```
 
-video_folder = '../vid2vid-zero-main/outputs/Outputs_Vid2VidZero'
-Video output path over here
+### Update File Paths
+1. Set the CSV file name in the function `save_metrics_to_csv`:
+   ```python
+   def save_metrics_to_csv(metrics, csv_filename="Vid2VidZeroMetrics.csv"):
+   ```
+2. Update the video folder path:
+   ```python
+   video_folder = '../vid2vid-zero-main/outputs/Outputs_Vid2VidZero'
+   ```
+
+Run the script to evaluate metrics and save them to a CSV file.
